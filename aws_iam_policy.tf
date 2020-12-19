@@ -1,0 +1,87 @@
+resource "aws_iam_policy" "policy" {
+  name        = "neptune-start-stop-control-policy"
+  description = "A policy to control Neptune DB Clusters start/stop state"
+  policy      = <<EOF
+{
+   "Version":"2012-10-17",
+   "Statement":[
+      {
+         "Effect":"Allow",
+         "Action":[
+            "rds:CreateDBCluster",
+            "rds:CreateDBInstance"
+         ],
+         "Resource":[
+            "arn:aws:rds:*:*:*"
+         ],
+         "Condition":{
+            "StringEquals":{
+               "rds:DatabaseEngine":[
+                  "graphdb",
+                  "neptune"
+               ]
+            }
+         }
+      },
+      {
+         "Effect":"Allow",
+         "Action":[
+            "neptune-db:*"
+         ],
+         "Resource":[
+            "arn:aws:neptune-db:${var.region}:${data.aws_caller_identity.current.account_id}:*/*"
+         ]
+      },
+      {
+         "Action":[
+            "rds:*"
+         ],
+         "Effect":"Allow",
+         "Resource":[
+            "*"
+         ]
+      },
+      {
+         "Action":[
+            "cloudwatch:GetMetricStatistics",
+            "cloudwatch:ListMetrics",
+            "ec2:DescribeAccountAttributes",
+            "ec2:DescribeAvailabilityZones",
+            "ec2:DescribeSecurityGroups",
+            "ec2:DescribeSubnets",
+            "ec2:DescribeVpcAttribute",
+            "ec2:DescribeVpcs",
+            "kms:ListAliases",
+            "kms:ListKeyPolicies",
+            "kms:ListKeys",
+            "kms:ListRetirableGrants",
+            "logs:DescribeLogStreams",
+            "logs:GetLogEvents",
+            "sns:ListSubscriptions",
+            "sns:ListTopics",
+            "sns:Publish"
+         ],
+         "Effect":"Allow",
+         "Resource":[
+            "*"
+         ]
+      },
+      {
+         "Sid":"CloudWatchLogs0",
+         "Effect":"Allow",
+         "Action":[
+            "logs:CreateLogStream",
+            "logs:PutLogEvents"
+         ],
+         "Resource":"arn:aws:logs:${var.region}:${data.aws_caller_identity.current.account_id}:log-group:/aws/lambda/*Neptune:*"
+      },
+      {
+         "Sid":"CloudWatchLogs1",
+         "Effect":"Allow",
+         "Action":"logs:CreateLogGroup",
+         "Resource":"arn:aws:logs:${var.region}:${data.aws_caller_identity.current.account_id}:*"
+      }
+   ]
+}
+EOF
+}
